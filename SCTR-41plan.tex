@@ -1,0 +1,3178 @@
+% generated from JIRA project LVV
+% using template at /Users/womullan/LSSTgit/docsteady/docsteady/templates/tpnoresult.latex.jinja2.
+% using docsteady version 2.2.post4+g100285e.d20210519
+% Please do not edit -- update information in Jira instead
+\documentclass[dm,lsstdraft,STR,toc]{lsstdoc}
+\usepackage{geometry}
+\usepackage{longtable,booktabs}
+\usepackage{enumitem}
+\usepackage{arydshln}
+\usepackage{attachfile}
+\usepackage{array}
+\usepackage{dashrule}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}p{#1}}
+
+\input meta.tex
+
+\newcommand{\attachmentsUrl}{https://github.com/\gitorg/\lsstDocType-\lsstDocNum/blob/\gitref/attachments}
+\providecommand{\tightlist}{
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\setcounter{tocdepth}{4}
+
+\begin{document}
+
+\def\milestoneName{Level 3 System Spread Configuration Integration}
+\def\milestoneId{}
+\def\product{SIT-COM Integration}
+
+\setDocCompact{true}
+
+\title{LVV-P81: Level 3 System Spread Configuration Integration Test Plan }
+\setDocRef{\lsstDocType-\lsstDocNum}
+\date{ 2022-07-30 }
+\author{ Austin Roberts }
+
+\input{history_and_info.tex}
+
+
+\setDocAbstract{
+This is the test plan for
+\textbf{ Level 3 System Spread Configuration Integration},
+an LSST milestone pertaining to the Data Management Subsystem.\\
+This document is based on content automatically extracted from the Jira test database on \docDate.
+The most recent change to the document repository was on \vcsDate.
+}
+
+
+\maketitle
+
+\section{Introduction}
+\label{sect:intro}
+
+
+\subsection{Objectives}
+\label{sect:objectives}
+
+ The primary objective of this integration event is to baseline the
+interoperability of the available systems located on the third floor of
+the Summit prior to the systems populated on the Camera Cart getting
+installed on the Telescope Mount Assembly (TMA). The systems populating
+the Camera Cart are the Camera Cable Wrap (CCW), Camera Hexapod, Camera
+Rotator, and the Commissioning Camera (ComCam). The secondary objective
+of this integration event is to check the Global Interlock System (GIS)
+and that the connections to the available Interlock Systems on the third
+floor are working correctly.\\[2\baselineskip]This integration event is
+organized into a series of test cycles. First, we will verify each
+system's communication interface with SAL by checking their commands,
+events, and telemetry. Then we will verify each of the GIS safety matrix
+detections and actuations and the GIS fault conditions. For the
+Interlock Systems that are available, we will verify that they receive
+the input from the GIS and produce the correct outputs. Finally, we will
+start with the M1M3 hardware and the rest of the systems as simulators.
+We will run a series of tests in that configuration. Then we will
+replace each simulator with the actual hardware that is available one by
+one and rerun the series of tests. The end goal of these tests is to run
+through 5 observations from the ScriptQueue using ComCam images with
+corrections being applied by the Main Telescope Active Optics System
+(MTAOS).\\[2\baselineskip]There are a few constraints for this
+configuration on the third floor that must be taken into account during
+this integration event.\\
+The Main Telescope Mount (MTMount) will always be a simulator since the
+actual TMA hardware is not available to provide the elevation changes to
+the other systems.\\
+There are two simulators available. The MTMount simulator and the
+\textbf{MTMount hybrid} . The \textbf{MTMount hybrid~} allows for large
+(\textgreater{}3deg) movements of the rotator.\\
+The used version depends on where the CCW needs to be simulated or not.
+CCW needs to be simulated when the rotator is simulated. In this case,
+the MTMount simulator is used.\\
+The necessary telemetry for the rotator will be provided by both
+\textbf{MTMount~} simulators.\\
+The M2 Hexapod is already installed on the TMA. Even though it might be
+physically available, we are always going to use it as a simulated
+component.\\[2\baselineskip]For the M1M3 and the M2 mirror, it is needed
+to use the MTMount telemetry when we are using testing the LUT.\\
+When only testing the SAL communication only, the inclinometers should
+be used for the test case. In future, when the TMA is available and
+moving, only inclinometers will be used.\\[2\baselineskip]Few time:
+C206, C176, C170, C177\\
+Normal time: C170, C177, C173, C172, C174, C206, C175, C176
+
+
+
+\subsection{System Overview}
+\label{sect:systemoverview}
+
+ The systems involved in this event are as follows:
+
+\begin{itemize}
+\tightlist
+\item
+  MTAOS
+\item
+  Pointing Component
+\item
+  ScriptQueue
+\item
+  MTMount simulator
+\item
+  M2 Hexapod simulator
+\item
+  M1M3 hardware
+\item
+  M2 simulator and hardware
+\item
+  Camera Hexapod simulator and hardware
+\item
+  Camera Rotator simulator and hardware
+\item
+  ComCam hardware
+\item
+  DM Tools
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Archiver
+  \item
+    OODS
+  \end{itemize}
+\end{itemize}
+
+For the GIS the systems involved in this event are as follows:
+
+\begin{itemize}
+\tightlist
+\item
+  GIS Main Controller
+\item
+  M2 Camera Controller
+
+  \begin{itemize}
+  \tightlist
+  \item
+    M2 Interlock System
+  \item
+    Camera Rotator Interlock System
+  \item
+    Camera Hexapod Interlock System
+  \end{itemize}
+\item
+  M1M3 Controller
+
+  \begin{itemize}
+  \tightlist
+  \item
+    M1M3 Interlock System
+  \end{itemize}
+\end{itemize}
+
+
+\subsection{Document Overview}
+\label{sect:docoverview}
+
+This document was generated from Jira, obtaining the relevant information from the
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testPlan/LVV-P81}{LVV-P81}
+~Jira Test Plan and related Test Cycles (
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C170}{LVV-C170}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C172}{LVV-C172}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C173}{LVV-C173}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C174}{LVV-C174}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C175}{LVV-C175}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C176}{LVV-C176}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C177}{LVV-C177}
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C206}{LVV-C206}
+).
+
+Section \ref{sect:intro} provides an overview of the test campaign, the system under test (\product{}),
+the applicable documentation, and explains how this document is organized.
+Section \ref{sect:testplan} provides additional information about the test plan, like for example the configuration
+used for this test or related documentation.
+Section \ref{sect:personnel} describes the necessary roles and lists the individuals assigned to them.
+
+Section \ref{sect:overview} provides a summary of the test results, including an overview in Table \ref{table:summary},
+an overall assessment statement and suggestions for possible improvements.
+Section \ref{sect:detailedtestresults} provides detailed results for each step in each test case.
+
+The current status of test plan \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testPlan/LVV-P81}{LVV-P81} in Jira is \textbf{ Approved }.
+
+\subsection{References}
+\label{sect:references}
+\renewcommand{\refname}{}
+\bibliography{lsst,refs,books,refs_ads,local}
+
+
+\newpage
+\section{Test Plan Details}
+\label{sect:testplan}
+
+
+\subsection{Data Collection}
+
+  Observing is not required for this test campaign.
+
+\subsection{Verification Environment}
+\label{sect:hwconf}
+  The environment for the execution of this event will be the third floor
+of the Summit.
+
+  \subsection{Entry Criteria}
+  Due to technical and schedule constraints, the full re-verification of
+each of the subsystems integrated into the spread configuration is not
+possible.\\
+The following functionality of each of the subsystems is required prior
+to executing this verification event.
+
+\begin{itemize}
+\tightlist
+\item
+  M2
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Subscribe to MTMount telemetry
+  \item
+    Apply forces as commanded through SAL
+  \item
+    Read and apply compensations from the look up table
+  \item
+    State machine transitions
+  \end{itemize}
+\item
+  M1M3
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Subscribe to MTMount telemetry
+  \item
+    Apply forces as commanded through SAL
+  \item
+    Read and apply compensations from the look up table
+  \item
+    State machine transitions
+  \end{itemize}
+\item
+  Camera Hexapod
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Re-verification of the Camera Hexapod with ComCam installed
+  \end{itemize}
+\item
+  Camera Rotator
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Re-verification of the Camera Rotator with ComCam installed
+  \end{itemize}
+\item
+  ComCam
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Image playback functionality on the Summit
+  \item
+    Filter change
+  \item
+    Shutter open and close
+  \item
+    Simulated image ingested via DAQ for MTAOS integration
+  \item
+    CCS integrated with SAL on Summit
+  \end{itemize}
+\item
+  MTAOS
+\item
+  Pointing Component
+\item
+  ScriptQueue
+\end{itemize}
+
+  \subsection{Exit Criteria}
+  In order for this event to be considered complete, the following
+criteria must be met:
+
+\begin{itemize}
+\tightlist
+\item
+  Raw test data, events, and telemetry have been saved for all systems
+  included in the tests.
+\item
+  All test data has been analyzed and post-processed.
+\item
+  All test steps have been statused in the Jira Test Cases within this
+  Test Plan and actual results populated as required.
+\item
+  A summary of the results of the test campaign has been captured in the
+  Overall Assessment and Recommended Improvements fields of this Test
+  Plan
+\item
+  A link to the verification artifacts used to produce the summary of
+  results has been populated in the Verification Artifacts field of this
+  Test Plan
+\item
+  Any failures have been captured in the
+  \href{https://jira.lsstcorp.org/projects/FRACAS/issues/}{FRACAS}
+  project
+\item
+  Determine the extent to which all the components operated coherently
+  as one system. This means that we can send a command with the
+  ScriptQueue to slew, track and observe including the following
+  components:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    M2 cell + surrogate on the cart
+  \item
+    M1M3 cell + surrogate on cart
+  \item
+    Camera Hexapod
+  \item
+    Camera Rotator with restrictive motion due to the CCW not being
+    available
+  \item
+    ComCam
+  \item
+    DM tools
+  \end{itemize}
+\end{itemize}
+
+
+\subsection{Related Documentation}
+
+Docushare collection where additional relevant documentation can be found:
+
+\begin{itemize}
+\item For the verification artifacts see the executions of the test cases.
+\end{itemize}
+
+
+
+\subsection{PMCS Activity}
+
+Primavera milestones related to the test campaign:
+\begin{itemize}
+\item None
+\end{itemize}
+
+
+\newpage
+\section{Personnel}
+\label{sect:personnel}
+
+The personnel involved in the test campaign is shown in the following table.
+
+{\small
+\begin{longtable}{p{3cm}p{3cm}p{3cm}p{6cm}}
+\hline
+\multicolumn{2}{r}{T. Plan \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testPlan/LVV-P81}{LVV-P81} owner:} &
+\multicolumn{2}{l}{\textbf{ Austin Roberts } }\\\hline
+\multicolumn{2}{r}{T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C170}{LVV-C170} owner:} &
+\multicolumn{2}{l}{\textbf{
+Holger Drass }
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1802}{LVV-T1802}
+& {\small Holger Drass } & {\small Holger Drass } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Software Engineer\\
+(1) Hardware Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1615}{LVV-T1615}
+& {\small Austin Roberts } & {\small Bruno Quint } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Mechanical Engineer\\
+(1) Electrical Engineer\\
+(1) Software Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1600}{LVV-T1600}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Software Engineer\\
+(1) Hardware Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1602}{LVV-T1602}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration Specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2222}{LVV-T2222}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Integration Specialist\\
+(1) Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2221}{LVV-T2221}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Integration Specialist\\
+(1) Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2232}{LVV-T2232}
+& {\small Petr Kubanek } & {\small Bruno Quint } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Mechanical Engineer\\
+(1) Electrical Engineer\\
+(1) Software Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2219}{LVV-T2219}
+& {\small Austin Roberts } & {\small Bruno Quint } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Mechanical Engineer\\
+(1) Electrical Engineer\\
+(1) Software Engineer\\
+(1) Commissioning Scientist }
+\medskip
+\end{minipage}
+\\ \hline
+\multicolumn{2}{r}{T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C172}{LVV-C172} owner:} &
+\multicolumn{2}{l}{\textbf{
+Holger Drass }
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{LVV-T2193}
+& {\small Bo Xin [X] } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small  }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{LVV-T2242}
+& {\small Bo Xin [X] } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration Specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{LVV-T2213}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{LVV-T2190}
+& {\small Bo Xin [X] } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Integration Specialist\\
+Systems Verification Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{LVV-T2241}
+& {\small Bo Xin [X] } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration Specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{LVV-T2214}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Engineer\\
+Integration specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Verification Engineer\\
+System Integration Specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Integration Specialist\\
+(1) Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\multicolumn{2}{r}{T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C173}{LVV-C173} owner:} &
+\multicolumn{2}{l}{\textbf{
+Holger Drass }
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{LVV-T2190}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Integration Specialist\\
+Systems Verification Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{LVV-T2193}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small  }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{LVV-T2213}
+& {\small Holger Drass } & {\small Bruno Quint } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{LVV-T2214}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Engineer\\
+Integration specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Verification Engineer\\
+System Integration Specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Integration Specialist\\
+(1) Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{LVV-T2241}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration Specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{LVV-T2242}
+& {\small Holger Drass } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration Specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\multicolumn{2}{r}{T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C174}{LVV-C174} owner:} &
+\multicolumn{2}{l}{\textbf{
+Holger Drass }
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{LVV-T2193}
+& {\small Bo Xin [X] } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small  }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{LVV-T2242}
+& {\small Bo Xin [X] } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration Specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{LVV-T2213}
+& {\small Austin Roberts } & {\small Bruno Quint } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{LVV-T2190}
+& {\small Bo Xin [X] } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Integration Specialist\\
+Systems Verification Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{LVV-T2241}
+& {\small Bo Xin [X] } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration Specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{LVV-T2214}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Engineer\\
+Integration specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Verification Engineer\\
+System Integration Specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Integration Specialist\\
+(1) Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\multicolumn{2}{r}{T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C175}{LVV-C175} owner:} &
+\multicolumn{2}{l}{\textbf{
+Holger Drass }
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+& {\small Austin Roberts } & {\small Sandrine Thomas } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Verification Engineer\\
+System Integration Specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+& {\small Austin Roberts } & {\small Sandrine Thomas } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Integration Specialist\\
+(1) Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\multicolumn{2}{r}{T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C176}{LVV-C176} owner:} &
+\multicolumn{2}{l}{\textbf{
+Holger Drass }
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2578}{LVV-T2578}
+& {\small Brian Stalder } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Integration Specialist\\
+Systems Verification Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2344}{LVV-T2344}
+& {\small Bruno Quint } & {\small Holger Drass } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Integration Specialist\\
+Systems Verification Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{LVV-T2190}
+& {\small Bruno Quint } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Integration Specialist\\
+Systems Verification Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2290}{LVV-T2290}
+& {\small Bruno Quint } & {\small Holger Drass } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Observing Specialist\\
+Software Engineer\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{LVV-T2193}
+& {\small Bruno Quint } & {\small Holger Drass } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small  }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2228}{LVV-T2228}
+& {\small Bruno Quint } & {\small Bruno Quint } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Integration Specialist\\
+Systems Verification Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2229}{LVV-T2229}
+& {\small Bruno Quint } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Integration Specialist\\
+Systems Verification Engineer\\
+Software Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\multicolumn{2}{r}{T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C177}{LVV-C177} owner:} &
+\multicolumn{2}{l}{\textbf{
+Holger Drass }
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2540}{LVV-T2540}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Systems Engineer, (1) Electrical Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2227}{LVV-T2227}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Systems Engineer, (1) Electrical Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2231}{LVV-T2231}
+& {\small Austin Roberts } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Systems Engineer, (1) Electrical Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\multicolumn{2}{r}{T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C206}{LVV-C206} owner:} &
+\multicolumn{2}{l}{\textbf{
+Holger Drass }
+} \\\hline
+\textbf{Test Cases} & \textbf{Assigned to} & \textbf{Executed by} & \textbf{Additional Test Personnel} \\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+& {\small Sandrine Thomas } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Verification Engineer\\
+System Integration Specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+& {\small Sandrine Thomas } & {\small  } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small (1) Integration Specialist\\
+(1) Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{LVV-T2241}
+& {\small Bo Xin [X] } & {\small Chris Walter } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration Specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{LVV-T2213}
+& {\small Austin Roberts } & {\small Ioana Sotuela } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Integration specialist\\
+Systems Engineer }
+\medskip
+\end{minipage}
+\\ \hline
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{LVV-T2214}
+& {\small Austin Roberts } & {\small Ioana Sotuela } &
+\begin{minipage}[]{6cm}
+\smallskip
+{\small Systems Engineer\\
+Integration specialist }
+\medskip
+\end{minipage}
+\\ \hline
+\end{longtable}
+}
+
+\newpage
+
+\section{Test Campaign Overview}
+\label{sect:overview}
+
+\subsection{Summary}
+\label{sect:summarytable}
+
+{\small
+\begin{longtable}{p{2cm}cp{2.3cm}p{8.6cm}p{2.3cm}}
+\toprule
+\multicolumn{2}{r}{ T. Plan \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testPlan/LVV-P81}{LVV-P81}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Spread Configuration Integration }} & Approved \\\hline
+\multicolumn{2}{r}{ T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C170}{LVV-C170}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Integration: Individual Subsystem Interface to TCS }} & In Progress \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1802}{LVV-T1802}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1615}{LVV-T1615}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1600}{LVV-T1600}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1602}{LVV-T1602}
+&  3
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2222}{LVV-T2222}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2221}{LVV-T2221}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2232}{LVV-T2232}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2219}{LVV-T2219}
+&  1
+\\
+\\\hline
+\multicolumn{2}{r}{ T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C172}{LVV-C172}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Integration: M2 Hardware with M1M3 Hardware and
+Simulators }} & Not Executed \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{LVV-T2193}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{LVV-T2242}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{LVV-T2213}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{LVV-T2190}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{LVV-T2241}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{LVV-T2214}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+&  1
+\\
+\\\hline
+\multicolumn{2}{r}{ T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C173}{LVV-C173}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Integration: M1M3 Hardware with Simulators }} & In Progress \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{LVV-T2190}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{LVV-T2193}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{LVV-T2213}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{LVV-T2214}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{LVV-T2241}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{LVV-T2242}
+&  1
+\\
+\\\hline
+\multicolumn{2}{r}{ T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C174}{LVV-C174}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Integration: Camera Hexapod Hardware with M2 Hardware,
+M1M3 Hardware, and Simulators }} & In Progress \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{LVV-T2193}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{LVV-T2242}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{LVV-T2213}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{LVV-T2190}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{LVV-T2241}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{LVV-T2214}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+&  1
+\\
+\\\hline
+\multicolumn{2}{r}{ T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C175}{LVV-C175}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Integration: Camera Rotator Hardware with Camera Hexapod
+Hardware, M2 Hardware, M1M3 Hardware, and Simulators }} & In Progress \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+&  1
+\\
+\\\hline
+\multicolumn{2}{r}{ T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C176}{LVV-C176}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Integration: ComCam Software with Camera Rotator
+Hardware, Camera Hexapod Hardware, M2 Hardware, M1M3 Hardware, and
+Simulators }} & In Progress \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2578}{LVV-T2578}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2344}{LVV-T2344}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{LVV-T2190}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2290}{LVV-T2290}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{LVV-T2193}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2228}{LVV-T2228}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2229}{LVV-T2229}
+&  2
+\\
+\\\hline
+\multicolumn{2}{r}{ T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C177}{LVV-C177}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Integration: GIS Integration }} & Not Executed \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2540}{LVV-T2540}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2227}{LVV-T2227}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2231}{LVV-T2231}
+&  1
+\\
+\\\hline
+\multicolumn{2}{r}{ T. Cycle \href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCycle/LVV-C206}{LVV-C206}:} &
+\multicolumn{2}{p{10.9cm}}{\textbf{ Level 3 System Integration: M2 Hardware, M1M3 Hardware, CCW+Rotator
+Hardware, Cam Hex and Simulators }} & In Progress \\\hline
+\textbf{Test Cases} &  \textbf{Ver.}  \\\toprule
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{LVV-T2215}
+&  2
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{LVV-T2216}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{LVV-T2241}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{LVV-T2213}
+&  1
+\\
+\href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{LVV-T2214}
+&  1
+\\
+\\\hline
+\caption{Test Campaign Summary}
+\label{table:summary}
+\end{longtable}
+}
+
+\subsection{Overall Assessment}
+\label{sect:overallassessment}
+
+Not yet available.
+
+\subsection{Recommended Improvements}
+\label{sect:recommendations}
+
+\newpage
+\section{Detailed Tests}
+\label{sect:detailedtests}
+
+\subsection{Test Cycle LVV-C170 }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/LVV-C170}{Level 3 System Integration: Individual Subsystem Interface to TCS}} in Jira.
+
+Test Cycle name: Level 3 System Integration: Individual Subsystem Interface to TCS\\
+Status: In Progress
+
+Verify the interface with SAL for each of the following subsystems:
+
+\begin{itemize}
+\tightlist
+\item
+  Camera Hexapod per \citeds{LTS-160}
+\item
+  Camera Rotator per \citeds{LTS-160}
+\item
+  M2 per \citeds{LTS-162}
+\item
+  M1M3 per \citeds{LTS-161}
+\item
+  ComCam per XML
+\item
+  M2 Hexapod (simulator) per \citeds{LTS-160}
+\item
+  MTMount (simulator) per \citeds{LTS-159}
+\item
+  MTAOS per \citeds{LTS-163}
+\end{itemize}
+
+\subsubsection{Software Version/Baseline}
+\begin{itemize}
+\tightlist
+\item
+  XML 12.0 and Cycle 26 rev 0.
+\item
+  SAL object versions and CSC versions:
+  https://github.com/lsst-ts/ts\_cycle\_build/blob/c0025.008/cycle/cycle.env
+\item
+  EUI versions can be determined from the Puppet.
+\item
+  At a later point, the controller version can be determined from
+  Puppet. At the moment the controller versions can be determined from
+  the Tags on GitHub from the deployed system itself.
+\item
+  MTHexapod\_1 (CamHex) low-level controller - v1.4.1
+\item
+  MTHexapod\_1 (CamHex) EUI - v1.3.2
+\item
+  {MTRot (Camera Rotator) EUI-~v1.2.2}
+\item
+  MTRot (Camera Rotator) low-level controller - v1.5.2
+\item
+  MTRot (Camera Rotator) Trajectory generator (Tekniker version)- v1.2.9
+\item
+  MTM2 low-level controller v1.0.0
+\item
+  MTM2 EUI -{~v1.4.0}
+\item
+  MTM1M3 low-level controller - {vX.X}
+\item
+  {MTM1M3 EUI -~}{vX.X}
+\item
+  ComCam low-level controller- {vX.X}
+\item
+  {ComCam CCS}{- vX.X}
+\item
+  {MTHexapod\_2 (M2 Hexapod) simulator~}{-vX.X}{\\
+  }
+\item
+  MTMount simulator/hardware hybrid (CCW is real hardware) version -
+  {vX.X}
+\end{itemize}
+
+\subsubsection{Configuration}
+Each hardware subsystem and the simulators are tested independently from
+each other. All hardware components are located on the level 3 floor.
+
+\subsubsection{Test Cases in LVV-C170 Test Cycle}
+
+\paragraph{ LVV-T1802 - Integration of M2 Hexapod with SAL }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1802}{\textit{ LVV-T1802 } }
+test case in Jira.
+
+The objective of this test case is to re-verify the functional
+requirements of the M2 hexapod's software, after shipment of the
+hardware from the vendor's facility to the Summit, as defined in \citeds{LTS-206}
+and \citeds{LTS-160}. This test case will only exercise the functionality that
+was executed previously and meets the following criteria:
+
+\begin{itemize}
+\tightlist
+\item
+  Only requires the use of Rubin Observatory code to replace MOOG's
+  middleware code
+\item
+  Only requires the M2 hexapod to be operable
+\item
+  Only requires command through the CSC after the PXI real-time
+  controller is switched from GUI mode to DDS mode
+\item
+  Only requires testing the synchronous mode
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Asynchronous mode is not a standard mode of operation}
+  \end{itemize}
+\item
+  Does require the M2 hexapod temperature sensors to be operating
+\item
+  Does \textbf{NOT} require the M2 hexapod to be rotated to various
+  elevation angles
+\item
+  Does \textbf{NOT~}require the M2 hexapod to be in a climate-controlled
+  environment
+\end{itemize}
+
+The software functional requirements were previously verified during the
+test campaign by the vendor at the vendor's facility and accepted by
+Rubin Observatory during the Factory Acceptance Test review. The test
+procedure used during the vendor's acceptance testing is the \emph{LSST
+Hexapods-Rotator Software Acceptance Test Procedure} which is attached
+to this test case. The test steps of this test case are the same steps
+from the procedure for the testing of the Camera Hexapod. The order of
+the steps was changed to reflect the \emph{Proposal of Hexapod Test~on
+the Dec. 2019~}Confluence page which can be found linked in the
+Traceability tab.\\[2\baselineskip]See the attached \emph{LSST Hexapod
+Operator's Manual} for more information on how to operate the hexapod.
+
+\textbf{ Preconditions}:\\
+Prior to the execution of this test case to re-verify the M2 Hexapod
+hardware functional requirements, the following Summit tasks must be
+completed:
+
+\begin{itemize}
+\tightlist
+\item
+  The measurement equipment has been set-up for testing
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-1943}
+  \end{itemize}
+\end{itemize}
+
+\paragraph{ LVV-T1615 - Integration of M2 with SAL }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1615}{\textit{ LVV-T1615 } }
+test case in Jira.
+
+The objective of this test case is to verify the software requirements
+of the M2 cell, as defined in \citeds{LTS-146} and \citeds{LTS-162}, utilizing the updated
+M2 CSC (SAL). The software requirements were previously verified during
+the test campaign by the vendor, but have since been updated per
+CR-0202. This test case will exercise the functionality of the M2 CSC
+and meets the following criteria:
+
+\begin{itemize}
+\tightlist
+\item
+  Only requires the most current version of SAL
+\item
+  Only requires the M2 surrogate to be loaded on the cell
+\item
+  Only requires the use of the DDS
+\item
+  Does \textbf{NOT} require the M2 to be integrated with the Interlock
+  system
+\end{itemize}
+
+\textbf{ Preconditions}:\\
+
+
+\paragraph{ LVV-T1600 - Integration of Camera Hexapod with SAL }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1600}{\textit{ LVV-T1600 } }
+test case in Jira.
+
+The objective of this test case is to re-verify the functional
+requirements of the camera hexapod's software, after shipment of the
+hardware from the vendor's facility to the Summit, as defined in \citeds{LTS-206}
+and \citeds{LTS-160}. This test case will only exercise the functionality that
+was executed previously and meets the following criteria:
+
+\begin{itemize}
+\tightlist
+\item
+  Only requires the use of Russell's code to replace MOOG's middleware
+  code
+\item
+  Only requires the camera hexapod to be operable
+\item
+  Only requires command through the CSC after the cRIO is switched from
+  GUI mode to DDS mode
+\item
+  Only requires testing of the synchronous mode
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Asynchronous mode is not a standard mode of operation}
+  \end{itemize}
+\item
+  This test case can be executed with or without the camera rotator to
+  be loaded with the camera simulated mass or actual camera hardware
+\end{itemize}
+
+The software functional requirements were previously verified during the
+test campaign by the vendor at the vendor's facility and accepted by
+LSST during the Factory Acceptance Test review. The test procedure used
+during the vendor's acceptance testing is the \emph{LSST
+Hexapods-Rotator Software Acceptance Test Procedure} which is attached
+to this test case. The test steps of this test case are derived from the
+same procedure, but the order of the steps have been changed to reflect
+the \emph{Proposal of Hexapod Test~on Dec. 2019~}Confluence page which
+can be found linked in the Traceability tab.\\[2\baselineskip]See the
+attached \emph{LSST Rotator Hexapod's Manual} for more information on
+how to operate the hexapod.
+
+\textbf{ Preconditions}:\\
+Prior to the execution of this test case to re-verify the Camera Hexapod
+hardware functional requirements, the following Summit tasks must be
+completed:
+
+\begin{itemize}
+\tightlist
+\item
+  The Hexapod has been installed on the camera cart
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-3224}
+  \end{itemize}
+\item
+  The Hexapod Controller has been deployed on the summit
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-3229}
+  \end{itemize}
+\item
+  Boxes for the Hexapod have been transported to the 3rd level
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-3230}
+  \end{itemize}
+\item
+  All Hexapod cables and cabinets have been prepared for integration
+  with camera cart
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-3231}
+  \end{itemize}
+\item
+  The offset has been installed onto the integrating structure
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-3293}
+  \end{itemize}
+\item
+  The Camera Hexapod electrical connections have been tested
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-3294}
+  \end{itemize}
+\end{itemize}
+
+\paragraph{ LVV-T1602 - Integration of Camera Rotator with SAL }\mbox{}\\
+
+Version \textbf{3}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T1602}{\textit{ LVV-T1602 } }
+test case in Jira.
+
+The objective of this test case is to verify the software requirements
+of the camera rotator, as defined in \citeds{LTS-160}.\\
+This test case will only exercise the functionality that was executed
+previously and meets the following criteria:
+
+\begin{itemize}
+\tightlist
+\item
+  Only requires the camera rotator to be operable
+\item
+  Only requires command through the CSC after the cRIO is switched from
+  GUI mode to DDS mode
+\item
+  Require the rotator to be loaded with the camera simulated mass or
+  actual camera hardware
+\end{itemize}
+
+The test procedure used during the previous testing without SAL was the
+\emph{LSST Hexapods-Rotator Software Acceptance Test Procedure.~}\\
+The test steps of this test case are taken directly from that document
+on how to perform the test in a similar way with the use of
+SAL.\\[2\baselineskip]History of this test case:\\
+See the \emph{New Rotator CSC Test at SLAC on 10/17/2019~}linked in the
+Traceability tab for the results of Russell's test of the events and
+telemetry with the bare rotator in SLAC.\\[2\baselineskip]See the
+attached \emph{LSST Rotator Operator's Manual} for more information on
+how to operate the rotator.\\[2\baselineskip]This Version 3.0 is
+detailed for XML 12.0 and Cycle 26.\\[2\baselineskip]While executing
+this test case ensure that the values for events and telemetry are
+reasonable.
+
+\textbf{ Preconditions}:\\
+Prior to the execution of this test case, the following Summit tasks
+must be completed:\\[2\baselineskip]
+
+\begin{itemize}
+\tightlist
+\item
+  The ComCam has been installed on the Camera Rotator
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-4935}
+  \end{itemize}
+\item
+  The ComCam utility lines have been connected to the CCW~
+
+  \begin{itemize}
+  \tightlist
+  \item
+    h\url{https://jira.lsstcorp.org/browse/SUMMIT-4936}
+  \end{itemize}
+\item
+  The functional testing of the Camera Rotator Hardware~
+
+  \begin{itemize}
+  \tightlist
+  \item
+    h\href{https://jira.lsstcorp.org/browse/SUMMIT-3370}{ttps://jira.lsstcorp.org/browse/SUMMIT-3370}
+  \end{itemize}
+\item
+  The functional testing of the Camera Rotator Software without SAL
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \url{https://jira.lsstcorp.org/browse/SUMMIT-3371}
+  \end{itemize}
+\end{itemize}
+
+\paragraph{ LVV-T2222 - MTAOS Interface to SAL }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2222}{\textit{ LVV-T2222 } }
+test case in Jira.
+
+The objective of this test case is to verify the MTAOS communication
+interface with SAL by checking the commands as defined in the latest
+XML.\\
+This test will not verify the functionality of the commands, but will
+simply test that the MTAOS is able to publish the commands to SAL.\\
+The MTAOS commands, as well as the events, will be fully verified in
+later test cycles of the Level 3 Integration Test Plan when the MTAOS is
+integrated with the M1M3, M2, and the hexapods.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  Only requires the MTAOS to be operable~
+\item
+  Requires the use of SAL/DDS and the EFD
+\item
+  Does not require any communication with the M1M3, M2, and the hexapods
+\end{itemize}
+
+\paragraph{ LVV-T2221 - MTMount Interface to SAL }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2221}{\textit{ LVV-T2221 } }
+test case in Jira.
+
+The objective of this test case is to verify~
+
+\begin{itemize}
+\tightlist
+\item
+  the MTMount communication interface with SAL by testing the commands,
+  events and telemetry defined by the latest version of the XML
+\item
+  all topic parameters are filled with data
+\item
+  the data are reasonable.
+\end{itemize}
+
+This test case will exercise the functionality of the Telescope Mount
+and meet the following criteria:\\
+
+\begin{itemize}
+\tightlist
+\item
+  Only requires the most current version of SAL
+\item
+  Requires the use of the DDS and the EFD
+\end{itemize}
+
+\textbf{ Preconditions}:\\
+No specific preconditions identified
+
+\paragraph{ LVV-T2232 - M1M3 Integration with SAL }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2232}{\textit{ LVV-T2232 } }
+test case in Jira.
+
+The objective of this test case is to verify the latest M1M3 commands,
+events and telemetry defined by the latest version of the XML. This test
+case will exercise the functionality of the M1M3 on the 3rd level of the
+Summit and meets the following criteria:
+
+\begin{itemize}
+\tightlist
+\item
+  Only requires the most current version of SAL
+\item
+  Only requires the M1M3 surrogate to be loaded on the cell
+\item
+  Requires the use of the DDS and the EFD
+\end{itemize}
+
+\textbf{ Preconditions}:\\
+M1M3 minimal functionality testing passed successfully.
+
+\paragraph{ LVV-T2219 - ComCam Interface to SAL }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2219}{\textit{ LVV-T2219 } }
+test case in Jira.
+
+The objective of this test case is to verify the ComCam communication
+interface with SAL by testing the commands, events and telemetry defined
+by the latest version of the XML. This test case will exercise the
+functionality of the ComCam on the 3rd level of the Summit and meets the
+following criteria:
+
+\begin{itemize}
+\tightlist
+\item
+  Only requires the ComCam to be operational
+\item
+  Does not require any communication with other subsystems
+\item
+  Does require the use of SAL and the EFD
+\end{itemize}
+
+\textbf{ Preconditions}:\\
+
+
+\subsection{Test Cycle LVV-C172 }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/LVV-C172}{Level 3 System Integration: M2 Hardware with M1M3 Hardware and
+Simulators}} in Jira.
+
+Test Cycle name: Level 3 System Integration: M2 Hardware with M1M3 Hardware and
+Simulators\\
+Status: Not Executed
+
+Get details from Google doc.\\[3\baselineskip]This uses the MTMount
+simulator.
+
+\subsubsection{Software Version/Baseline}
+Not provided.
+
+\subsubsection{Configuration}
+\begin{itemize}
+\tightlist
+\item
+  GIS hardware
+\item
+  M1M3 hardware
+\item
+  M2 hardware
+\item
+  Camera Hexapod simulator
+\item
+  Camera Rotator simulator
+\item
+  M2 Hexapod simulator
+\item
+  MTMount simulator
+\item
+  MTAOS software
+\item
+  ComCam hardware but not utilizing software
+\end{itemize}
+
+\subsubsection{Test Cases in LVV-C172 Test Cycle}
+
+\paragraph{ LVV-T2193 - MTAOS handling of rejected commands }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{\textit{ LVV-T2193 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+when one set of MTAOS corrections gets rejected.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  Camera Hexapod
+\item
+  M2 Hexapod
+\end{itemize}
+
+Extention of LVV-T2190. It has the same validation ticket traced to it.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality tests (we
+  use M2 hexapod simulator as long as necessary)
+\item
+  Summit network and EFD are ready to record Camera Hexapods commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the NCSA
+  simulated environment
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2242 - MTAOS configuration changes }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{\textit{ LVV-T2242 } }
+test case in Jira.
+
+Testing the communications between MTAOS (both WEP and OFC) and M1M3,
+M2, and the hexapods, via the MTAOS \emph{addAberration} command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  camera hexapod
+\item
+  M2 hexapod
+\item
+  MTAOS
+\end{itemize}
+
+From
+\href{https://docushare.lsst.org/docushare/dsweb/Get/LTS-186}{LTS-186 -
+MTAOS: WEP and OFC Requirement Document}:\\
+- Kallman filtering parameters\\
+- Number of visits\\
+- Detector(s) to be used*\\
+- Location of the detector*\\
+- Source selection parameters ({TBC})*\\
+- Basis Set\\
+-
+\href{https://github.com/lsst-ts/ts_config_mttcs/blob/develop/MTAOS/v2/ofc/comcam/senM_9_19_50.yaml}{Sensitivity
+Matrix}*\\
+- Reconstructor Matrix\\
+- Penalty Matrix\\
+- Quality Matrix\\
+- Gain\\[2\baselineskip]* These are the configurations that we can
+verify on System Spread Integration Tests on Level 3.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality tests (we
+  use the M2 hexapod simulator)
+\item
+  Summit network and EFD are ready to record CamHex commands, events,
+  and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the test
+  stand
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2213 - Look-up Table Application from MTMount Elevation and Azimuth Changes }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{\textit{ LVV-T2213 } }
+test case in Jira.
+
+Demonstrate that M1M3, M2, and the hexapods can subscribe to MTMount
+elevation changes, and the LUT is applied according to the MTMount
+elevation angle.\\
+Testing that the components are subscribing to the mount
+telemetry\\[2\baselineskip]\citeds{LTS-88} for M1M3\\
+\citeds{LTS-146} for M2\\
+\citeds{LTS-206} for the hexapods\\
+XML for the Mount\\
+\citeds{LTS-160}\\
+\citeds{LTS-161}\\
+\citeds{LTS-162}
+
+\textbf{ Preconditions}:\\
+The following components are ready for testing (depending on which test
+cycle this is being executed in, each component is either a hardware
+component or a simulator):\\
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2~
+\item
+  M2 Hexapod
+\item
+  Camera Hexapod
+\item
+  MTMount
+\end{itemize}
+
+\paragraph{ LVV-T2190 - MTAOS add aberrations to M1M3+M2+Hexapods }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{\textit{ LVV-T2190 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+via the MTAOS \emph{addAberration~}command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  Camera Hexapod
+\item
+  M2 Hexapod
+\item
+  MTAOS
+\end{itemize}
+
+These test steps are to test adding aberrations in the way of 1um*2um =
+2um.\\
+Same requirements as in
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2241}{LVV-2241}.
+Different ways to verify for them.\\[2\baselineskip]Requirements are
+from \citeds{LTS-186} (MTAOS), \citeds{LTS-206}, \citeds{LTS-88}, and \citeds{LTS-146} (MTAOS calculates and
+publishes the offsets.)\\
+MTAOS commands the offsets to the other components LTS- 160,161,162
+(Components subscribe to the MTAOS telemetry and apply the offsets.)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Summit network and EFD are ready to record Camera Hexapod's commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested a test stand
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2241 - MTAOS corrections accumulation }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{\textit{ LVV-T2241 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+via the MTAOS addAberration command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  camera hexapod
+\item
+  M2 hexapod
+\item
+  MTAOS
+\end{itemize}
+
+This tests that adding aberrations in the way of 1um+1um =
+2um.\\[2\baselineskip]Same requirements in
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2190}{LVV-2190}.
+Different ways to verify for them.\\[2\baselineskip]Requirements are
+from \citeds{LTS-186} (MTAOS), \citeds{LTS-206}, \citeds{LTS-88}, \citeds{LTS-146}\\
+(MTAOS calculates and publishes the offsets.)\\
+MTAOS commands the offsets to the other components\\
+LTS- 160,161,162 (Components subscribe to the MTAOS telemetry and apply
+the offsets.)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass minimum functionality test (we use
+  M2 hexapod simulator)
+\item
+  summit network and EFD are ready to record Camera Hexapods commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the NCSA
+  simulated environment
+\item
+  MTAOS CSC is set up ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2214 - MTMount Elevation Changes with MTAOS Aberrations }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{\textit{ LVV-T2214 } }
+test case in Jira.
+
+
+
+\textbf{ Preconditions}:\\
+
+
+\paragraph{ LVV-T2215 - IM(D): Integrated Slew Test }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{\textit{ LVV-T2215 } }
+test case in Jira.
+
+In this test case, we are slewing to four different targets
+\textbf{without tracking}.\\
+The success criterium is to slew to the targets.\\[2\baselineskip]For
+this test case, we should use the \textbf{hybrid} \textbf{mtmount} (CCW
+hardware controlled but the Alt/Az simulated).\\[2\baselineskip]This is
+a validation test case, no requirement is verified here.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Jupyter notebook for the test has been written and tested at a test
+  stand
+\end{itemize}
+
+\paragraph{ LVV-T2216 - Integrated Slew and Tracking Test }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{\textit{ LVV-T2216 } }
+test case in Jira.
+
+{This test case is very similar
+to~}{\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2215}{LVV-T2215}}{,
+but they are not exactly the same.}\\
+{This test involves slew and track while the other one involves only
+slew with no tracking.}\\[2\baselineskip]{We first get force values from
+M1M3 and M2 using the inclinometers then using the mount telemetry and
+compare the results.~}
+
+\textbf{ Preconditions}:\\
+The components must have passed the minimum functionality tests.
+
+\subsection{Test Cycle LVV-C173 }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/LVV-C173}{Level 3 System Integration: M1M3 Hardware with Simulators}} in Jira.
+
+Test Cycle name: Level 3 System Integration: M1M3 Hardware with Simulators\\
+Status: In Progress
+
+Get details from Google doc.\\[2\baselineskip]This uses the MTMount
+simulator.
+
+\subsubsection{Software Version/Baseline}
+Not provided.
+
+\subsubsection{Configuration}
+M2 Mirror stays in the horizontal position. We are using telemetry to
+simulate elevation changes.\\
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3 hardware
+\item
+  M2 simulator
+\item
+  Camera Hexapod simulator
+\item
+  Camera Rotator simulator
+\item
+  M2 Hexapod simulator
+\item
+  MTMount simulator
+\item
+  MTAOS software
+\item
+  {ComCam hardware but not utilizing {software}}
+\end{itemize}
+
+\subsubsection{Test Cases in LVV-C173 Test Cycle}
+
+\paragraph{ LVV-T2190 - MTAOS add aberrations to M1M3+M2+Hexapods }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{\textit{ LVV-T2190 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+via the MTAOS \emph{addAberration~}command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  Camera Hexapod
+\item
+  M2 Hexapod
+\item
+  MTAOS
+\end{itemize}
+
+These test steps are to test adding aberrations in the way of 1um*2um =
+2um.\\
+Same requirements as in
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2241}{LVV-2241}.
+Different ways to verify for them.\\[2\baselineskip]Requirements are
+from \citeds{LTS-186} (MTAOS), \citeds{LTS-206}, \citeds{LTS-88}, and \citeds{LTS-146} (MTAOS calculates and
+publishes the offsets.)\\
+MTAOS commands the offsets to the other components LTS- 160,161,162
+(Components subscribe to the MTAOS telemetry and apply the offsets.)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Summit network and EFD are ready to record Camera Hexapod's commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested a test stand
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2193 - MTAOS handling of rejected commands }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{\textit{ LVV-T2193 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+when one set of MTAOS corrections gets rejected.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  Camera Hexapod
+\item
+  M2 Hexapod
+\end{itemize}
+
+Extention of LVV-T2190. It has the same validation ticket traced to it.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality tests (we
+  use M2 hexapod simulator as long as necessary)
+\item
+  Summit network and EFD are ready to record Camera Hexapods commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the NCSA
+  simulated environment
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2213 - Look-up Table Application from MTMount Elevation and Azimuth Changes }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{\textit{ LVV-T2213 } }
+test case in Jira.
+
+Demonstrate that M1M3, M2, and the hexapods can subscribe to MTMount
+elevation changes, and the LUT is applied according to the MTMount
+elevation angle.\\
+Testing that the components are subscribing to the mount
+telemetry\\[2\baselineskip]\citeds{LTS-88} for M1M3\\
+\citeds{LTS-146} for M2\\
+\citeds{LTS-206} for the hexapods\\
+XML for the Mount\\
+\citeds{LTS-160}\\
+\citeds{LTS-161}\\
+\citeds{LTS-162}
+
+\textbf{ Preconditions}:\\
+The following components are ready for testing (depending on which test
+cycle this is being executed in, each component is either a hardware
+component or a simulator):\\
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2~
+\item
+  M2 Hexapod
+\item
+  Camera Hexapod
+\item
+  MTMount
+\end{itemize}
+
+\paragraph{ LVV-T2214 - MTMount Elevation Changes with MTAOS Aberrations }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{\textit{ LVV-T2214 } }
+test case in Jira.
+
+
+
+\textbf{ Preconditions}:\\
+
+
+\paragraph{ LVV-T2215 - IM(D): Integrated Slew Test }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{\textit{ LVV-T2215 } }
+test case in Jira.
+
+In this test case, we are slewing to four different targets
+\textbf{without tracking}.\\
+The success criterium is to slew to the targets.\\[2\baselineskip]For
+this test case, we should use the \textbf{hybrid} \textbf{mtmount} (CCW
+hardware controlled but the Alt/Az simulated).\\[2\baselineskip]This is
+a validation test case, no requirement is verified here.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Jupyter notebook for the test has been written and tested at a test
+  stand
+\end{itemize}
+
+\paragraph{ LVV-T2216 - Integrated Slew and Tracking Test }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{\textit{ LVV-T2216 } }
+test case in Jira.
+
+{This test case is very similar
+to~}{\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2215}{LVV-T2215}}{,
+but they are not exactly the same.}\\
+{This test involves slew and track while the other one involves only
+slew with no tracking.}\\[2\baselineskip]{We first get force values from
+M1M3 and M2 using the inclinometers then using the mount telemetry and
+compare the results.~}
+
+\textbf{ Preconditions}:\\
+The components must have passed the minimum functionality tests.
+
+\paragraph{ LVV-T2241 - MTAOS corrections accumulation }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{\textit{ LVV-T2241 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+via the MTAOS addAberration command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  camera hexapod
+\item
+  M2 hexapod
+\item
+  MTAOS
+\end{itemize}
+
+This tests that adding aberrations in the way of 1um+1um =
+2um.\\[2\baselineskip]Same requirements in
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2190}{LVV-2190}.
+Different ways to verify for them.\\[2\baselineskip]Requirements are
+from \citeds{LTS-186} (MTAOS), \citeds{LTS-206}, \citeds{LTS-88}, \citeds{LTS-146}\\
+(MTAOS calculates and publishes the offsets.)\\
+MTAOS commands the offsets to the other components\\
+LTS- 160,161,162 (Components subscribe to the MTAOS telemetry and apply
+the offsets.)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass minimum functionality test (we use
+  M2 hexapod simulator)
+\item
+  summit network and EFD are ready to record Camera Hexapods commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the NCSA
+  simulated environment
+\item
+  MTAOS CSC is set up ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2242 - MTAOS configuration changes }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{\textit{ LVV-T2242 } }
+test case in Jira.
+
+Testing the communications between MTAOS (both WEP and OFC) and M1M3,
+M2, and the hexapods, via the MTAOS \emph{addAberration} command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  camera hexapod
+\item
+  M2 hexapod
+\item
+  MTAOS
+\end{itemize}
+
+From
+\href{https://docushare.lsst.org/docushare/dsweb/Get/LTS-186}{LTS-186 -
+MTAOS: WEP and OFC Requirement Document}:\\
+- Kallman filtering parameters\\
+- Number of visits\\
+- Detector(s) to be used*\\
+- Location of the detector*\\
+- Source selection parameters ({TBC})*\\
+- Basis Set\\
+-
+\href{https://github.com/lsst-ts/ts_config_mttcs/blob/develop/MTAOS/v2/ofc/comcam/senM_9_19_50.yaml}{Sensitivity
+Matrix}*\\
+- Reconstructor Matrix\\
+- Penalty Matrix\\
+- Quality Matrix\\
+- Gain\\[2\baselineskip]* These are the configurations that we can
+verify on System Spread Integration Tests on Level 3.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality tests (we
+  use the M2 hexapod simulator)
+\item
+  Summit network and EFD are ready to record CamHex commands, events,
+  and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the test
+  stand
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\subsection{Test Cycle LVV-C174 }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/LVV-C174}{Level 3 System Integration: Camera Hexapod Hardware with M2 Hardware,
+M1M3 Hardware, and Simulators}} in Jira.
+
+Test Cycle name: Level 3 System Integration: Camera Hexapod Hardware with M2 Hardware,
+M1M3 Hardware, and Simulators\\
+Status: In Progress
+
+Get details from Google doc.\\[3\baselineskip]This uses the MTMount
+simulator.
+
+\subsubsection{Software Version/Baseline}
+Not provided.
+
+\subsubsection{Configuration}
+\begin{itemize}
+\tightlist
+\item
+  GIS hardware
+\item
+  M1M3 hardware
+\item
+  M2 hardware
+\item
+  Camera Hexapod hardware
+\item
+  Camera Rotator simulator
+\item
+  M2 Hexapod simulator
+\item
+  MTMount simulator
+\item
+  MTAOS software
+\item
+  ComCam hardware but not utilizing software
+\end{itemize}
+
+\subsubsection{Test Cases in LVV-C174 Test Cycle}
+
+\paragraph{ LVV-T2193 - MTAOS handling of rejected commands }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{\textit{ LVV-T2193 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+when one set of MTAOS corrections gets rejected.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  Camera Hexapod
+\item
+  M2 Hexapod
+\end{itemize}
+
+Extention of LVV-T2190. It has the same validation ticket traced to it.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality tests (we
+  use M2 hexapod simulator as long as necessary)
+\item
+  Summit network and EFD are ready to record Camera Hexapods commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the NCSA
+  simulated environment
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2242 - MTAOS configuration changes }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2242}{\textit{ LVV-T2242 } }
+test case in Jira.
+
+Testing the communications between MTAOS (both WEP and OFC) and M1M3,
+M2, and the hexapods, via the MTAOS \emph{addAberration} command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  camera hexapod
+\item
+  M2 hexapod
+\item
+  MTAOS
+\end{itemize}
+
+From
+\href{https://docushare.lsst.org/docushare/dsweb/Get/LTS-186}{LTS-186 -
+MTAOS: WEP and OFC Requirement Document}:\\
+- Kallman filtering parameters\\
+- Number of visits\\
+- Detector(s) to be used*\\
+- Location of the detector*\\
+- Source selection parameters ({TBC})*\\
+- Basis Set\\
+-
+\href{https://github.com/lsst-ts/ts_config_mttcs/blob/develop/MTAOS/v2/ofc/comcam/senM_9_19_50.yaml}{Sensitivity
+Matrix}*\\
+- Reconstructor Matrix\\
+- Penalty Matrix\\
+- Quality Matrix\\
+- Gain\\[2\baselineskip]* These are the configurations that we can
+verify on System Spread Integration Tests on Level 3.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality tests (we
+  use the M2 hexapod simulator)
+\item
+  Summit network and EFD are ready to record CamHex commands, events,
+  and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the test
+  stand
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2213 - Look-up Table Application from MTMount Elevation and Azimuth Changes }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{\textit{ LVV-T2213 } }
+test case in Jira.
+
+Demonstrate that M1M3, M2, and the hexapods can subscribe to MTMount
+elevation changes, and the LUT is applied according to the MTMount
+elevation angle.\\
+Testing that the components are subscribing to the mount
+telemetry\\[2\baselineskip]\citeds{LTS-88} for M1M3\\
+\citeds{LTS-146} for M2\\
+\citeds{LTS-206} for the hexapods\\
+XML for the Mount\\
+\citeds{LTS-160}\\
+\citeds{LTS-161}\\
+\citeds{LTS-162}
+
+\textbf{ Preconditions}:\\
+The following components are ready for testing (depending on which test
+cycle this is being executed in, each component is either a hardware
+component or a simulator):\\
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2~
+\item
+  M2 Hexapod
+\item
+  Camera Hexapod
+\item
+  MTMount
+\end{itemize}
+
+\paragraph{ LVV-T2190 - MTAOS add aberrations to M1M3+M2+Hexapods }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{\textit{ LVV-T2190 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+via the MTAOS \emph{addAberration~}command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  Camera Hexapod
+\item
+  M2 Hexapod
+\item
+  MTAOS
+\end{itemize}
+
+These test steps are to test adding aberrations in the way of 1um*2um =
+2um.\\
+Same requirements as in
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2241}{LVV-2241}.
+Different ways to verify for them.\\[2\baselineskip]Requirements are
+from \citeds{LTS-186} (MTAOS), \citeds{LTS-206}, \citeds{LTS-88}, and \citeds{LTS-146} (MTAOS calculates and
+publishes the offsets.)\\
+MTAOS commands the offsets to the other components LTS- 160,161,162
+(Components subscribe to the MTAOS telemetry and apply the offsets.)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Summit network and EFD are ready to record Camera Hexapod's commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested a test stand
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2241 - MTAOS corrections accumulation }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{\textit{ LVV-T2241 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+via the MTAOS addAberration command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  camera hexapod
+\item
+  M2 hexapod
+\item
+  MTAOS
+\end{itemize}
+
+This tests that adding aberrations in the way of 1um+1um =
+2um.\\[2\baselineskip]Same requirements in
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2190}{LVV-2190}.
+Different ways to verify for them.\\[2\baselineskip]Requirements are
+from \citeds{LTS-186} (MTAOS), \citeds{LTS-206}, \citeds{LTS-88}, \citeds{LTS-146}\\
+(MTAOS calculates and publishes the offsets.)\\
+MTAOS commands the offsets to the other components\\
+LTS- 160,161,162 (Components subscribe to the MTAOS telemetry and apply
+the offsets.)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass minimum functionality test (we use
+  M2 hexapod simulator)
+\item
+  summit network and EFD are ready to record Camera Hexapods commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the NCSA
+  simulated environment
+\item
+  MTAOS CSC is set up ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2214 - MTMount Elevation Changes with MTAOS Aberrations }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{\textit{ LVV-T2214 } }
+test case in Jira.
+
+
+
+\textbf{ Preconditions}:\\
+
+
+\paragraph{ LVV-T2215 - IM(D): Integrated Slew Test }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{\textit{ LVV-T2215 } }
+test case in Jira.
+
+In this test case, we are slewing to four different targets
+\textbf{without tracking}.\\
+The success criterium is to slew to the targets.\\[2\baselineskip]For
+this test case, we should use the \textbf{hybrid} \textbf{mtmount} (CCW
+hardware controlled but the Alt/Az simulated).\\[2\baselineskip]This is
+a validation test case, no requirement is verified here.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Jupyter notebook for the test has been written and tested at a test
+  stand
+\end{itemize}
+
+\paragraph{ LVV-T2216 - Integrated Slew and Tracking Test }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{\textit{ LVV-T2216 } }
+test case in Jira.
+
+{This test case is very similar
+to~}{\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2215}{LVV-T2215}}{,
+but they are not exactly the same.}\\
+{This test involves slew and track while the other one involves only
+slew with no tracking.}\\[2\baselineskip]{We first get force values from
+M1M3 and M2 using the inclinometers then using the mount telemetry and
+compare the results.~}
+
+\textbf{ Preconditions}:\\
+The components must have passed the minimum functionality tests.
+
+\subsection{Test Cycle LVV-C175 }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/LVV-C175}{Level 3 System Integration: Camera Rotator Hardware with Camera Hexapod
+Hardware, M2 Hardware, M1M3 Hardware, and Simulators}} in Jira.
+
+Test Cycle name: Level 3 System Integration: Camera Rotator Hardware with Camera Hexapod
+Hardware, M2 Hardware, M1M3 Hardware, and Simulators\\
+Status: In Progress
+
+Get details from Google doc.\\[2\baselineskip]This test is using the
+MTMount \textbf{simulated.}
+
+\subsubsection{Software Version/Baseline}
+Not provided.
+
+\subsubsection{Configuration}
+\begin{itemize}
+\tightlist
+\item
+  GIS hardware
+\item
+  M1M3 hardware
+\item
+  M2 hardware
+\item
+  Camera Hexapod hardware
+\item
+  Camera Rotator hardware
+\item
+  M2 Hexapod simulator
+\item
+  MTMount simulator
+\item
+  MTAOS software
+\item
+  ComCam hardware but not utilizing software
+\end{itemize}
+
+\subsubsection{Test Cases in LVV-C175 Test Cycle}
+
+\paragraph{ LVV-T2215 - IM(D): Integrated Slew Test }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{\textit{ LVV-T2215 } }
+test case in Jira.
+
+In this test case, we are slewing to four different targets
+\textbf{without tracking}.\\
+The success criterium is to slew to the targets.\\[2\baselineskip]For
+this test case, we should use the \textbf{hybrid} \textbf{mtmount} (CCW
+hardware controlled but the Alt/Az simulated).\\[2\baselineskip]This is
+a validation test case, no requirement is verified here.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Jupyter notebook for the test has been written and tested at a test
+  stand
+\end{itemize}
+
+\paragraph{ LVV-T2216 - Integrated Slew and Tracking Test }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{\textit{ LVV-T2216 } }
+test case in Jira.
+
+{This test case is very similar
+to~}{\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2215}{LVV-T2215}}{,
+but they are not exactly the same.}\\
+{This test involves slew and track while the other one involves only
+slew with no tracking.}\\[2\baselineskip]{We first get force values from
+M1M3 and M2 using the inclinometers then using the mount telemetry and
+compare the results.~}
+
+\textbf{ Preconditions}:\\
+The components must have passed the minimum functionality tests.
+
+\subsection{Test Cycle LVV-C176 }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/LVV-C176}{Level 3 System Integration: ComCam Software with Camera Rotator
+Hardware, Camera Hexapod Hardware, M2 Hardware, M1M3 Hardware, and
+Simulators}} in Jira.
+
+Test Cycle name: Level 3 System Integration: ComCam Software with Camera Rotator
+Hardware, Camera Hexapod Hardware, M2 Hardware, M1M3 Hardware, and
+Simulators\\
+Status: In Progress
+
+The test case aims to verify that the components\\
+
+\begin{itemize}
+\tightlist
+\item
+  GIS hardware
+\item
+  M1M3 hardware
+\item
+  M2 hardware
+\item
+  Camera Hexapod hardware
+\item
+  Camera Rotator hardware
+\item
+  M2 Hexapod simulator
+\item
+  MTMount simulator with CCW hardware
+\end{itemize}
+
+are seamlessly integrated with the\\
+
+\begin{itemize}
+\tightlist
+\item
+  MTAOS software
+\item
+  Pointing Component software
+\item
+  ComCam hardware and software
+\end{itemize}
+
+This test cycle needs to use the MTMount \textbf{hybrid.}
+
+\subsubsection{Software Version/Baseline}
+Not provided.
+
+\subsubsection{Configuration}
+\begin{itemize}
+\tightlist
+\item
+  GIS hardware
+\item
+  M1M3 hardware
+\item
+  M2 hardware
+\item
+  Camera Hexapod hardware
+\item
+  Camera Rotator hardware
+\item
+  M2 Hexapod simulator
+\item
+  MTMount simulator with CCW hardware
+\item
+  MTAOS software
+\item
+  Pointing Component software
+\item
+  ComCam hardware and software
+\end{itemize}
+
+\subsubsection{Test Cases in LVV-C176 Test Cycle}
+
+\paragraph{ LVV-T2578 - ComCam Opto-Mechanical Filter Changer Test }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2578}{\textit{ LVV-T2578 } }
+test case in Jira.
+
+The objective of this test is to verify the \citeds{LTS-508} requirements in
+relation to the filter changer performance.
+
+\textbf{ Preconditions}:\\
+ComCam operable.
+
+\paragraph{ LVV-T2344 - Startup MT Components for System Spread Integration Tests on Level 3 via
+Jupyter Notebook }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2344}{\textit{ LVV-T2344 } }
+test case in Jira.
+
+Concentrate the setup procedures for all the components used during
+Phases 1, 2, and 3 of the Level 3 spread configuration integration
+tests.\\
+Based on the no-longer existing~\textbf{setup.ipynb} notebook (it was
+updated and renamed, see the Jupyter Notebook Link further below).
+
+\textbf{ Preconditions}:\\
+
+
+\paragraph{ LVV-T2190 - MTAOS add aberrations to M1M3+M2+Hexapods }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2190}{\textit{ LVV-T2190 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+via the MTAOS \emph{addAberration~}command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  Camera Hexapod
+\item
+  M2 Hexapod
+\item
+  MTAOS
+\end{itemize}
+
+These test steps are to test adding aberrations in the way of 1um*2um =
+2um.\\
+Same requirements as in
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2241}{LVV-2241}.
+Different ways to verify for them.\\[2\baselineskip]Requirements are
+from \citeds{LTS-186} (MTAOS), \citeds{LTS-206}, \citeds{LTS-88}, and \citeds{LTS-146} (MTAOS calculates and
+publishes the offsets.)\\
+MTAOS commands the offsets to the other components LTS- 160,161,162
+(Components subscribe to the MTAOS telemetry and apply the offsets.)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Summit network and EFD are ready to record Camera Hexapod's commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested a test stand
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2290 - Slew, Track and Image taking with ComCam }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2290}{\textit{ LVV-T2290 } }
+test case in Jira.
+
+Use the procedures from the TCS
+(https://github.com/lsst-ts/ts\_notebooks/tree/tickets/DM-31475/procedures/MT/slew)
+to set up, slew, track and take an image with ComCam\\
+The success criteria are to obtain an image with ComCam, available in
+the Butler and populated with the correct metadata.\\
+\citeds{LSE-71} OCS to Camera
+(\href{https://jira.lsstcorp.org/browse/LVV-5129}{LVV-5129~}+4)\\
+Requirements for the Butler\\[2\baselineskip]Find data by searching for
+header information (metadata information) in the Butler.
+--\textgreater{} make a new test case.\\[2\baselineskip]Access image
+from the butler.\\
+Metadata is available and has the available data at the moment of the
+test. Date, Type of image, mount parameters(EL, AZ), Pointing(RA, DEC)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Summit network and EFD are ready to record Camera Hexapod's commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested at a test
+  stand.
+\end{itemize}
+
+\paragraph{ LVV-T2193 - MTAOS handling of rejected commands }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2193}{\textit{ LVV-T2193 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+when one set of MTAOS corrections gets rejected.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  Camera Hexapod
+\item
+  M2 Hexapod
+\end{itemize}
+
+Extention of LVV-T2190. It has the same validation ticket traced to it.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality tests (we
+  use M2 hexapod simulator as long as necessary)
+\item
+  Summit network and EFD are ready to record Camera Hexapods commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the NCSA
+  simulated environment
+\item
+  MTAOS CSC is set up and ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2228 - IM(G): One time ComCam Image Ingestion and MTAOS Correction }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2228}{\textit{ LVV-T2228 } }
+test case in Jira.
+
+The goal of this test case is to ingest a simulated image using the
+playback mode of ComCam.\\
+This means that even though simulated, the system after the DAQ behaves
+as if it were real.\\
+This includes the DM pipeline (Butler, OCPS, etc) and, in a later stage,
+the AOS correction loop.\\
+In this particular test case, we are focusing on the Active Optics
+pipeline.\\[2\baselineskip]{Demonstrate:}\\
+{•}{~}{Slew to an observing field, generating telemetry
+(}{cf.}{~}{IM}{F}{)}\\
+{•}{~}{piston the camera in Z-direction (e.g. in, -out, in, +out,
+in).}\\
+{•}{~}{take data using ComCam in playback mode, commanded from the
+OCS}\\
+{•}{~}{uses}{~}{OCPS}{~}{to reduce the data on the commissioning
+cluster}\\
+{•}{~}{load the Zernike coefficients into}{~the~}{EFD}\\
+{•}{~}{Use the MTAOS to update the state of the
+optics}\\[2\baselineskip]{Associated Documents}
+
+\begin{itemize}
+\tightlist
+\item
+  \href{https://ls.st/Document-14771}{Document-14771 - Active Optics
+  Baseline Design}
+\item
+  \href{https://ls.st/LTS-186}{LSE-186 - Main Telescope Active Optics
+  System: Wavefront Estimation Pipeline and Optical Feedback Controller
+  Requirement Document}
+\end{itemize}
+
+\textbf{ Preconditions}:\\
+IM1 has been successfully completed:
+\href{https://jira.lsstcorp.org/browse/SUMMIT-2983}{SUMMIT-2983}\\
+The precondition is fulfilled since Nov 2020.
+
+\paragraph{ LVV-T2229 - Closed Loop ComCam Image Ingestion and Application of Correction }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2229}{\textit{ LVV-T2229 } }
+test case in Jira.
+
+The goal of this test case is to\\[2\baselineskip]
+
+\begin{itemize}
+\tightlist
+\item
+  perform three telescope slews including the ComCam software and
+  hardware.
+\item
+  apply the calculated offsets to the different AOS components from the
+  first visit.
+\end{itemize}
+
+This means that even though simulated, the system after the DAQ behaves
+as if it were real. This includes the DM pipeline (Butler, OCPS, etc)
+and then further down the AOS loop.~\\
+This should follow after step ``15 IMG {[}g{]}: AOS using ComCam,
+commanding MT (2021-06-30)'' in~\url{https://sitcomtn-006.lsst.io/},
+revision: 2021-09-03.
+
+\textbf{ Preconditions}:\\
+One precondition for this test is to have the DAQ playback capability.
+
+\subsection{Test Cycle LVV-C177 }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/LVV-C177}{Level 3 System Integration: GIS Integration}} in Jira.
+
+Test Cycle name: Level 3 System Integration: GIS Integration\\
+Status: Not Executed
+
+Verify that all the GIS interlocks for the available hardware and
+simulated inputs/outputs for the unavailable hardware are fully
+functional.
+
+\subsubsection{Software Version/Baseline}
+Not provided.
+
+\subsubsection{Configuration}
+No changing configuration for the test cases within this test cycle.
+
+\subsubsection{Test Cases in LVV-C177 Test Cycle}
+
+\paragraph{ LVV-T2540 - Level 3 Interlock Systems Inspections }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2540}{\textit{ LVV-T2540 } }
+test case in Jira.
+
+Inspect the following Interlock Systems that are located on Level 3:
+
+\begin{itemize}
+\tightlist
+\item
+  Camera Hexapod
+\item
+  Camera Rotator
+\item
+  M2
+\item
+  M1M3
+\item
+  GIS
+\end{itemize}
+
+\textbf{ Preconditions}:\\
+All of the hardware for the Interlock Systems are located on Level 3 and
+connected through the GIS.
+
+\paragraph{ LVV-T2227 - GIS Safety Matrix Interlock Verification }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2227}{\textit{ LVV-T2227 } }
+test case in Jira.
+
+The objective of this test case is to trigger each detection identified
+in the GIS Safety Matrix per \citeds{LTS-188} and verify that the corresponding
+actuations are generated. Depending on the detections, actuations, and
+hardware available on the third floor of the Summit some of the
+detections will be triggered by simulating the input to the GIS hardware
+and actuation outputs from the GIS hardware will be verified using test
+equipment in lieu of the actual hardware. If the Interlock System (IS)
+for a system that interfaces with the GIS is available on the third
+floor of the Summit, the input from the GIS will be verified to be
+received by the IS and the corresponding actuations for that IS will be
+verified to have been generated and the hardware responds accordingly.
+
+\textbf{ Preconditions}:\\
+
+
+\paragraph{ LVV-T2231 - (GIS-D-3) GIS Fault Verification }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2231}{\textit{ LVV-T2231 } }
+test case in Jira.
+
+The objective of this test case is to trigger each GIS fault identified
+in \citeds{LTS-188} and verify that the corresponding actuations are generated.
+Depending on the detections, actuations, and hardware available on the
+third floor of the Summit some of the detections will be triggered by
+simulating the input to the GIS hardware and actuation outputs from the
+GIS hardware will be verified using test equipment in lieu of the actual
+hardware. If the Interlock System (IS) for a system that interfaces with
+the GIS is available on the third floor of the Summit, the input from
+the GIS will be verified to be received by the IS and the corresponding
+actuations for that IS will be verified to have been generated and the
+hardware responds accordingly.
+
+\textbf{ Preconditions}:\\
+
+
+\subsection{Test Cycle LVV-C206 }
+
+Open test cycle {\it \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testrun/LVV-C206}{Level 3 System Integration: M2 Hardware, M1M3 Hardware, CCW+Rotator
+Hardware, Cam Hex and Simulators}} in Jira.
+
+Test Cycle name: Level 3 System Integration: M2 Hardware, M1M3 Hardware, CCW+Rotator
+Hardware, Cam Hex and Simulators\\
+Status: In Progress
+
+In June 2022, during the System spread testing, we tried to use the
+simulators to conduct LVV-C173, LVV-C174 and LVV-C175 but the Mount
+simulator was producing erroneous elevation data causing the M2 hardware
+and M1M3 hardware to fault.\\[2\baselineskip]This test cycle is only to
+be performed if the mount simulator can not be debugged on time for the
+execution and the M2 simulator can not be deployed.\\[2\baselineskip]In
+this cycle, we have tested that we can slew and track while applying the
+LUT to the mirror system (m1m3 and m2 subscribed to the mount instead of
+the inclinometer).\\[2\baselineskip]This test cycle brings in the CCW
+and therefore has to use the MTMount\\[2\baselineskip]Here we are
+executing the test cases with larger rotations.\\
+TBD: Update the test cases for the conditions of the rotation angle. The
+rotation angle should be below 2.5 deg with the hybrid mount and larger
+with the hybrid mount.\\[2\baselineskip]
+
+\subsubsection{Software Version/Baseline}
+Not provided.
+
+\subsubsection{Configuration}
+\begin{itemize}
+\tightlist
+\item
+  GIS hardware
+\item
+  M1M3 hardware
+\item
+  M2 hardware
+\item
+  Camera Hexapod hardware
+\item
+  Camera Rotator Hardware
+\item
+  M2 Hexapod simulator
+\item
+  MTMount simulator with the CCW hardware
+\item
+  MTAOS software
+\item
+  ComCam hardware but not utilizing software
+\end{itemize}
+
+\subsubsection{Test Cases in LVV-C206 Test Cycle}
+
+\paragraph{ LVV-T2215 - IM(D): Integrated Slew Test }\mbox{}\\
+
+Version \textbf{2}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2215}{\textit{ LVV-T2215 } }
+test case in Jira.
+
+In this test case, we are slewing to four different targets
+\textbf{without tracking}.\\
+The success criterium is to slew to the targets.\\[2\baselineskip]For
+this test case, we should use the \textbf{hybrid} \textbf{mtmount} (CCW
+hardware controlled but the Alt/Az simulated).\\[2\baselineskip]This is
+a validation test case, no requirement is verified here.
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass the minimum functionality test (we
+  use the M2 hexapod simulator)
+\item
+  Jupyter notebook for the test has been written and tested at a test
+  stand
+\end{itemize}
+
+\paragraph{ LVV-T2216 - Integrated Slew and Tracking Test }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2216}{\textit{ LVV-T2216 } }
+test case in Jira.
+
+{This test case is very similar
+to~}{\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2215}{LVV-T2215}}{,
+but they are not exactly the same.}\\
+{This test involves slew and track while the other one involves only
+slew with no tracking.}\\[2\baselineskip]{We first get force values from
+M1M3 and M2 using the inclinometers then using the mount telemetry and
+compare the results.~}
+
+\textbf{ Preconditions}:\\
+The components must have passed the minimum functionality tests.
+
+\paragraph{ LVV-T2241 - MTAOS corrections accumulation }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2241}{\textit{ LVV-T2241 } }
+test case in Jira.
+
+Testing the communications between MTAOS and M1M3, M2, and the hexapods,
+via the MTAOS addAberration command.\\
+This test exercises the following components:
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2
+\item
+  camera hexapod
+\item
+  M2 hexapod
+\item
+  MTAOS
+\end{itemize}
+
+This tests that adding aberrations in the way of 1um+1um =
+2um.\\[2\baselineskip]Same requirements in
+\href{https://jira.lsstcorp.org/secure/Tests.jspa\#/testCase/LVV-T2190}{LVV-2190}.
+Different ways to verify for them.\\[2\baselineskip]Requirements are
+from \citeds{LTS-186} (MTAOS), \citeds{LTS-206}, \citeds{LTS-88}, \citeds{LTS-146}\\
+(MTAOS calculates and publishes the offsets.)\\
+MTAOS commands the offsets to the other components\\
+LTS- 160,161,162 (Components subscribe to the MTAOS telemetry and apply
+the offsets.)
+
+\textbf{ Preconditions}:\\
+\begin{itemize}
+\tightlist
+\item
+  M1M3, M2, and Camera Hexapod pass minimum functionality test (we use
+  M2 hexapod simulator)
+\item
+  summit network and EFD are ready to record Camera Hexapods commands,
+  events, and telemetry (use of domain 0)
+\item
+  Jupyter notebook for the test has been written and tested in the NCSA
+  simulated environment
+\item
+  MTAOS CSC is set up ready on the summit network
+\end{itemize}
+
+\paragraph{ LVV-T2213 - Look-up Table Application from MTMount Elevation and Azimuth Changes }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2213}{\textit{ LVV-T2213 } }
+test case in Jira.
+
+Demonstrate that M1M3, M2, and the hexapods can subscribe to MTMount
+elevation changes, and the LUT is applied according to the MTMount
+elevation angle.\\
+Testing that the components are subscribing to the mount
+telemetry\\[2\baselineskip]\citeds{LTS-88} for M1M3\\
+\citeds{LTS-146} for M2\\
+\citeds{LTS-206} for the hexapods\\
+XML for the Mount\\
+\citeds{LTS-160}\\
+\citeds{LTS-161}\\
+\citeds{LTS-162}
+
+\textbf{ Preconditions}:\\
+The following components are ready for testing (depending on which test
+cycle this is being executed in, each component is either a hardware
+component or a simulator):\\
+
+\begin{itemize}
+\tightlist
+\item
+  M1M3
+\item
+  M2~
+\item
+  M2 Hexapod
+\item
+  Camera Hexapod
+\item
+  MTMount
+\end{itemize}
+
+\paragraph{ LVV-T2214 - MTMount Elevation Changes with MTAOS Aberrations }\mbox{}\\
+
+Version \textbf{1}.
+Open  \href{https://jira.lsstcorp.org/secure/Tests.jspa#/testCase/LVV-T2214}{\textit{ LVV-T2214 } }
+test case in Jira.
+
+
+
+\textbf{ Preconditions}:\\
+
+
+
+
+\input{appendix.tex}
+\end{document}
