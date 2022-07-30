@@ -3,7 +3,6 @@ NAMESPACE = DM
 PLAN = LVV-P81
 DOCNUMBER = 41
 DOCNAME = $(DOCTYPE)-$(DOCNUMBER)
-JOBNAME = $(DOCNAME)
 DOCNAMEP = $(DOCNAME)plan
 TEX = $(filter-out $(wildcard *acronyms.tex) , $(wildcard *.tex))
 
@@ -21,11 +20,11 @@ endif
 all : $(DOCNAME).pdf $(DOCNAMEP).pdf 
 
 %.pdf: %.tex meta.tex acronyms.tex
-	xelatex -jobname=$< $<
-	bibtex $< 
-	xelatex -jobname=$< $<
-	xelatex -jobname=$< $<
-	xelatex -jobname=$< $<
+	xelatex  $<
+	bibtex $(basename $<)
+	xelatex  $<
+	xelatex  $<
+	xelatex  $<
 
 .FORCE:
 
