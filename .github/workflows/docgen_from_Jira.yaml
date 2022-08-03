@@ -28,18 +28,18 @@ jobs:
 
       - name: docugen
         env:
-          JIRA_USER: ${{ secrets.JIRA_USER }} 
-          JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }} 
+          JIRA_USER: ${{ secrets.JIRA_USER }}
+          JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
         run: |
           source ${CONDA}/bin/activate docsteady-env
           docsteady  --namespace DM generate-tpr LVV-P81  SCTR-41.tex
         shell: bash
- 
+
       - name: Create commit
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git commit -m "Update from JIRA." SCTR-41.tex 
+          git commit -m "Update from JIRA." SCTR-41.tex
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -56,4 +56,4 @@ jobs:
           LTD_PASSWORD: ${{ secrets.LTD_PASSWORD }}
           LTD_USERNAME: ${{ secrets.LTD_USERNAME }}
         run: |
-          lander --upload --pdf SCTR-41.pdf --lsstdoc SCTR-41.tex --ltd-product sctr-41
+          lander --upload --pdf SCTR-41.pdf --lsstdoc SCTR-41.tex --ltd-product sctr-41 --extra-download SCTR-41-plan.pdf
